@@ -1,0 +1,15 @@
+{
+  "name": "Productivity Tracker 2026",
+  "short_name": "Tracker",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a2a6c",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2098/2098402.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

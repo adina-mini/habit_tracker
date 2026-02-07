@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <title>Compact Tracker Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #1a2a6c;
+            --gold: #b29471;
+            --bg: #f8f9fa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: var(--bg); color: #333; padding: 8px; font-size: 13px; }
+
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* Compact Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+        .month-control { display: flex; align-items: center; gap: 10px; }
+        .month-control h1 { font-size: 1rem; color: var(--navy); min-width: 100px; text-align: center; font-weight: 800; }
+        .nav-btn { background: var(--navy); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+        /* Compact Sections */
+        .grid-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .card { background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #eee; }
+        .title { font-size: 0.75rem; color: var(--navy); margin-bottom: 8px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
+        .btn-add { background: var(--gold); color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; }
+
+        /* List Styling */
+        ul { list-style: none; max-height: 120px; overflow-y: auto; }
+        li { background: #f9f9f9; padding: 5px 8px; margin-bottom: 4px; border-radius: 4px; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--navy); }
+        .del-btn { color: #ccc; background: none; border: none; font-size: 1rem; cursor: pointer; padding-left: 5px; }
+
+        /* Protocol Table - Mobile Optimized */
+        .table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid #eee; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.65rem; text-align: center; }
+        th { background: var(--navy); color: white; padding: 8px 4px; }
+        td { padding: 4px; border: 1px solid #f1f1f1; }
+        .sticky-col { position: sticky; left: 0; background: #fafafa; font-weight: bold; min-width: 70px; text-align: left; padding-left: 8px; border-right: 2px solid #eee; }
+        .check-box { width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer; }
+
+        /* Chart */
+        .chart-box { height: 150px; display: flex; align-items: flex-end; gap: 3px; overflow-x: auto; padding: 10px; background: white; border: 1px solid #eee; border-radius: 8px; margin-top: 5px; }
+        .bar { background: var(--navy); min-width: 14px; border-radius: 2px 2px 0 0; display: flex; align-items: flex-end; justify-content: center; font-size: 0.5rem; color: white; position: relative; }
+        .bar span { transform: rotate(-90deg); margin-bottom: 12px; white-space: nowrap; }
+
+        /* Report Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 42, 108, 0.9); z-index: 2000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .stat-card { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--gold); }
+        .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--navy); }
+        .stat-lab { font-size: 0.6rem; text-transform: uppercase; color: #666; }
+
+        .report-btn { background: var(--navy); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .input-row { display: flex; gap: 4px; margin-top: 8px; }
+        .input-row input { flex: 1; font-size: 0.75rem; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        .input-row button { background: var(--navy); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="month-control">
+            <button class="nav-btn" onclick="moveMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <h1 id="month-display">FEBRUARY 2026</h1>
+            <button class="nav-btn" onclick="moveMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <button class="report-btn" onclick="openReport()">REPORT</button>
+    </header>
+
+    <div class="grid-section">
+        <div class="card">
+            <div class="title">Tasks <button class="btn-add" onclick="showInput('task')">+</button></div>
+            <ul id="task-list"></ul>
+            <div id="task-input-div" class="input-row" style="display:none">
+                <input type="text" id="task-in" placeholder="New Task...">
+                <button onclick="addTask()">OK</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="title">Wins <button class="btn-add" onclick="showInput('win')">+</button></div>
+            <ul id="win-list"></ul>
+            <div id="win-input-div" class="input-row" style="display:none">
+                <input type="text" id="win-in" placeholder="Achievement...">
+                <button onclick="addWin()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="title">PROTOCOLS</div>
+    <div class="table-wrap">
+        <table id="protocol-table"></table>
+    </div>
+
+    <div class="title" style="margin-top:10px;">PERFORMANCE</div>
+    <div class="chart-box" id="chart-box"></div>
+</div>
+
+<div class="modal" id="report-modal">
+    <div class="modal-content">
+        <span onclick="closeReport()" style="float:right; cursor:pointer; font-size:1.5rem; color:#ccc;">&times;</span>
+        <h2 id="modal-title" style="color:var(--navy); font-size:1.2rem;">Monthly Analysis</h2>
+        <div class="stat-grid">
+            <div class="stat-card"><div class="stat-val" id="stat-total-checked">0</div><div class="stat-lab">Checks</div></div>
+            <div class="stat-card"><div class="stat-val" id="stat-win-count">0</div><div class="stat-lab">Wins</div></div>
+            <div class="stat-card"><div class="stat-val" id="stat-rate">0%</div><div class="stat-lab">Success Rate</div></div>
+            <div class="stat-card"><div class="stat-val" id="stat-avg">0%</div><div class="stat-lab">Daily Avg</div></div>
+        </div>
+        <div id="review-text" style="font-size:0.8rem; line-height:1.4; padding:12px; background:#fff8e1; border-radius:8px; border-left:4px solid var(--gold);"></div>
+        <button class="report-btn" style="width:100%; margin-top:15px;" onclick="closeReport()">CLOSE</button>
+    </div>
+</div>
+
+<script>
+    const state = {
+        date: new Date(2026, 1, 1),
+        tasks: [],
+        wins: [],
+        checks: {}
+    };
+
+    function init() {
+        const saved = localStorage.getItem('compactTrackerData');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            state.date = new Date(parsed.date);
+            state.tasks = parsed.tasks || [];
+            state.wins = parsed.wins || [];
+            state.checks = parsed.checks || {};
+        }
+        render();
+    }
+
+    function save() { localStorage.setItem('compactTrackerData', JSON.stringify(state)); }
+
+    function render() {
+        const months = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        document.getElementById('month-display').textContent = `${months[state.date.getMonth()]} ${state.date.getFullYear()}`;
+        
+        // Render Tasks
+        const tList = document.getElementById('task-list');
+        tList.innerHTML = state.tasks.length ? '' : '<li style="color:#bbb; border:none;">No tasks</li>';
+        state.tasks.forEach((t, i) => {
+            tList.innerHTML += `<li><span>${t}</span><button class="del-btn" onclick="deleteItem('tasks', ${i})">&times;</button></li>`;
+        });
+
+        // Render Wins
+        const wList = document.getElementById('win-list');
+        wList.innerHTML = state.wins.length ? '' : '<li style="color:#bbb; border:none;">No wins</li>';
+        state.wins.forEach((w, i) => {
+            wList.innerHTML += `<li><span>${w}</span><button class="del-btn" onclick="deleteItem('wins', ${i})">&times;</button></li>`;
+        });
+
+        renderTable();
+        renderChart();
+    }
+
+    function renderTable() {
+        const table = document.getElementById('protocol-table');
+        const year = state.date.getFullYear();
+        const month = state.date.getMonth();
+        const days = new Date(year, month + 1, 0).getDate();
+
+        let html = `<tr><th class="sticky-col">TASK</th>`;
+        for (let d = 1; d <= days; d++) html += `<th>${d}</th>`;
+        html += `</tr>`;
+
+        state.tasks.forEach((task, tIdx) => {
+            html += `<tr><td class="sticky-col">${task}</td>`;
+            for (let d = 1; d <= days; d++) {
+                const key = `${tIdx}-${year}-${month}-${d}`;
+                const checked = state.checks[key] ? 'checked' : '';
+                html += `<td><input type="checkbox" class="check-box" onchange="toggleCheck('${key}', this.checked)" ${checked}></td>`;
+            }
+            html += `</tr>`;
+        });
+        table.innerHTML = html;
+    }
+
+    function renderChart() {
+        const box = document.getElementById('chart-box');
+        box.innerHTML = '';
+        const year = state.date.getFullYear();
+        const month = state.date.getMonth();
+        const days = new Date(year, month + 1, 0).getDate();
+
+        for (let d = 1; d <= days; d++) {
+            let done = 0;
+            state.tasks.forEach((_, tIdx) => { if (state.checks[`${tIdx}-${year}-${month}-${d}`]) done++; });
+            const pct = state.tasks.length ? Math.round((done / state.tasks.length) * 100) : 0;
+            
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${Math.max(pct * 1.2, 5)}px`;
+            bar.style.backgroundColor = pct === 0 ? '#eee' : (pct < 80 ? 'var(--gold)' : 'var(--navy)');
+            bar.innerHTML = pct > 0 ? `<span>${pct}%</span>` : '';
+            box.appendChild(bar);
+        }
+    }
+
+    // Logic Functions
+    function showInput(type) { document.getElementById(`${type}-input-div`).style.display = 'flex'; }
+    function addTask() { const val = document.getElementById('task-in').value; if(val){ state.tasks.push(val); document.getElementById('task-in').value=''; document.getElementById('task-input-div').style.display='none'; save(); render(); } }
+    function addWin() { const val = document.getElementById('win-in').value; if(val){ state.wins.push(val); document.getElementById('win-in').value=''; document.getElementById('win-input-div').style.display='none'; save(); render(); } }
+    function deleteItem(type, i) { state[type].splice(i, 1); save(); render(); }
+    function toggleCheck(key, val) { state.checks[key] = val; save(); renderChart(); }
+    function moveMonth(dir) { state.date.setMonth(state.date.getMonth() + dir); save(); render(); }
+
+    function openReport() {
+        const year = state.date.getFullYear();
+        const month = state.date.getMonth();
+        const days = new Date(year, month + 1, 0).getDate();
+        
+        let totalChecked = 0;
+        let dailySum = 0;
+        
+        // Accurate calculations
+        for (let d = 1; d <= days; d++) {
+            let dayDone = 0;
+            state.tasks.forEach((_, tIdx) => {
+                if (state.checks[`${tIdx}-${year}-${month}-${d}`]) {
+                    totalChecked++;
+                    dayDone++;
+                }
+            });
+            dailySum += state.tasks.length ? (dayDone / state.tasks.length) : 0;
+        }
+
+        const possible = state.tasks.length * days;
+        const rate = possible ? Math.round((totalChecked / possible) * 100) : 0;
+        const avg = Math.round((dailySum / days) * 100);
+
+        document.getElementById('stat-total-checked').textContent = totalChecked;
+        document.getElementById('stat-win-count').textContent = state.wins.length;
+        document.getElementById('stat-rate').textContent = rate + '%';
+        document.getElementById('stat-avg').textContent = avg + '%';
+        
+        let msg = "";
+        if (rate >= 80) msg = "Outstanding discipline! You are dominating your goals.";
+        else if (rate >= 50) msg = "Solid effort. You're building momentum, keep it steady.";
+        else msg = "Consistency is key. Focus on checking off just one task every single day.";
+        
+        document.getElementById('review-text').innerHTML = `<strong>Performance Review:</strong><br>${msg}`;
+        document.getElementById('report-modal').style.display = 'flex';
+    }
+
+    function closeReport() { document.getElementById('report-modal').style.display = 'none'; }
+
+    document.addEventListener('DOMContentLoaded', init);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+
+</body>
+</html>
